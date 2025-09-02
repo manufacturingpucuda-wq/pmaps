@@ -1,0 +1,494 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUCUDA MFG Inventory System</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- JsBarcode library for generating barcodes -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <style>
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+        .container {
+            max-width: 1024px;
+            margin: auto;
+            padding: 2rem;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #f7fafc;
+        }
+        .main-content {
+            background-color: #2d3748;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .table-container {
+            overflow-x: auto;
+            margin-top: 1.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #4a5568;
+        }
+        th {
+            background-color: #4a5568;
+        }
+        tr:hover {
+            background-color: #4a5568;
+        }
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        .btn {
+            background-color: #4299e1;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+        }
+        .btn:hover {
+            background-color: #3182ce;
+        }
+        .btn-green {
+            background-color: #48bb78;
+        }
+        .btn-green:hover {
+            background-color: #38a169;
+        }
+        .btn-red {
+            background-color: #e53e3e;
+        }
+        .btn-red:hover {
+            background-color: #c53030;
+        }
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .input-group input {
+            flex-grow: 1;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid #4a5568;
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background-color: #2d3748;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        .modal-content input {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #4a5568;
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+        .action-btns {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .action-btns .btn {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <h1>PUCUDA MFG Inventory System</h1>
+            <p id="generated-date" class="text-gray-400"></p>
+        </header>
+
+        <div class="main-content">
+            <!-- Add New Item Form -->
+            <div class="bg-gray-700 p-4 rounded-lg mb-6">
+                <h2 class="text-xl font-bold mb-4">Add New Item</h2>
+                <div class="flex flex-col md:flex-row gap-4 mb-4">
+                    <input type="text" id="newSkuInput" placeholder="SKU" class="p-2 rounded-md bg-gray-800 text-white flex-1">
+                    <input type="text" id="newProductNameInput" placeholder="Product Name" class="p-2 rounded-md bg-gray-800 text-white flex-1">
+                    <input type="number" id="newStockInput" placeholder="Current Stock" value="0" class="p-2 rounded-md bg-gray-800 text-white flex-1">
+                </div>
+                <button id="addItemBtn" class="btn btn-green w-full">Add Item</button>
+            </div>
+
+            <div class="button-group">
+                <button id="showAllBtn" class="btn">Show All Items</button>
+                <input type="text" id="searchInput" placeholder="Search by SKU or Product Name" class="p-2 rounded-md bg-gray-700 text-white flex-1">
+            </div>
+
+            <div class="table-container">
+                <table id="inventoryTable">
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Product Name</th>
+                            <th>Current Stock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryBody">
+                        <!-- Inventory rows will be injected here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barcode Modal -->
+    <div id="barcodeModal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold mb-4">Print Barcode</h2>
+            <p id="modalProductName" class="text-lg mb-4"></p>
+            <div class="flex justify-center mb-6">
+                <svg id="barcode-svg" class="w-full h-auto max-h-24"></svg>
+            </div>
+            <button id="printBarcodeBtn" class="btn btn-green">Print</button>
+            <button id="closeBarcodeModalBtn" class="btn ml-4">Close</button>
+        </div>
+    </div>
+
+    <!-- Edit Item Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold mb-4">Edit Item</h2>
+            <input type="text" id="editSkuInput" placeholder="SKU" class="mb-2">
+            <input type="text" id="editProductNameInput" placeholder="Product Name" class="mb-2">
+            <input type="number" id="editStockInput" placeholder="Current Stock">
+            <div class="flex gap-4 mt-4">
+                <button id="saveEditBtn" class="btn btn-green flex-1">Save Changes</button>
+                <button id="closeEditModalBtn" class="btn flex-1">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let inventoryData = [];
+
+        // Initial static data from the provided PDF file
+        const initialData = [
+            { "SKU": "1_4_Lashing_Cord_Shrinking_Core_JUTE", "Product Name": "$1/4$ Lashing Cord Shrinking Core JTE SKN", "Current Stock": 19 },
+            { "SKU": "14K_Raw", "Product Name": "14K No Climbing", "Current Stock": 1644 },
+            { "SKU": "14K_Raw_BLACK_10_FT", "Product Name": "14K No Climbing BLK 10", "Current Stock": "null" },
+            { "SKU": "14K_Raw_BLACK_5_FT", "Product Name": "14K No Climbing BLK 5", "Current Stock": 300 },
+            { "SKU": "18K_Raw", "Product Name": "18K Debris Liner - BLACK", "Current Stock": "null" },
+            { "SKU": "20R-300-1017", "Product Name": "$17' x 15' #300 Series combo net", "Current Stock": "null" },
+            { "SKU": "20R-300-171724", "Product Name": "$17' x 17' x 24' #300 Series Corner Guard combo net", "Current Stock": 1 },
+            { "SKU": "20R-300-1720", "Product Name": "$17' x 20' #300 Series combo net", "Current Stock": "null" },
+            { "SKU": "20R-300-1725", "Product Name": "$17' x 25' #300 Series combo net", "Current Stock": "null" },
+            { "SKU": "20R-300-1730", "Product Name": "17' x 30' #300 Series combo net", "Current Stock": "null" },
+            { "SKU": "20T_Raw", "Product Name": "20T Knotted Netting", "Current Stock": "null" },
+            { "SKU": "3_STRAND_ROPE", "Product Name": "3 Strand Rope - 1/2 - Black", "Current Stock": "null" },
+            { "SKU": "3_STRAND_ROPE-BLACK-1_2", "Product Name": "3 Strand Rope Blk 1/2", "Current Stock": 4 },
+            { "SKU": "3_STRAND_ROPE-JUTE-1_2", "Product Name": "3 Strand Rope JTE 1/2", "Current Stock": "null" },
+            { "SKU": "3_STRAND_ROPE-WHITE-1_2", "Product Name": "3 Strand Rope Wht 1/2", "Current Stock": 2 },
+            { "SKU": "300_S", "Product Name": "300S Knotted Net", "Current Stock": "null" },
+            { "SKU": "30K_Raw", "Product Name": "30K Knotless Raw", "Current Stock": 100 },
+            { "SKU": "33122069", "Product Name": "$1/4$ Lashing Cord Shrinking Core Silver", "Current Stock": "null" },
+            { "SKU": "33122069_BLACK_1_4_SOLID_BRAID", "Product Name": "Lashing Cord Blk 1/4 Solid Brd", "Current Stock": 12 },
+            { "SKU": "33122069_BLACK_1_8_SHRINKING", "Product Name": "Lashing Cord Blk 1/8 Shrink", "Current Stock": "null" },
+            { "SKU": "33122069_BLACK_1_8_SOLID_BRAID", "Product Name": "Lashing Cord Blk 1/8 Solid Brd", "Current Stock": 14 },
+            { "SKU": "33122069_BLUE_1_4_SOLID_BRAID", "Product Name": "Lashing Cord Blu 1/4 Solid Brd", "Current Stock": 1 },
+            { "SKU": "33122069_GRAY_1_4_SHRINKING", "Product Name": "Lashing Cord Gry 1/4 Shrink", "Current Stock": 5 },
+            { "SKU": "33122069_JUTE_1_8_SHRINKING", "Product Name": "Lashing Cord JTE 1/8 Shrink", "Current Stock": 2 },
+            { "SKU": "33122069_JUTE_1_8_SOLID_BRAID", "Product Name": "Lashing Cord JTE 1/8 Solid Brd", "Current Stock": 15 },
+            { "SKU": "33122069_SILVER_1_4_SHRINKING", "Product Name": "Lashing Cord Slv 1/4 Shrink", "Current Stock": 5 },
+            { "SKU": "33122069_TAN_1_4_SOLID_BRAID", "Product Name": "Lashing Cord Tan 1/4 Solid Brd", "Current Stock": "null" },
+            { "SKU": "33122069_TEAL_1_4_SOLID_BRAID", "Product Name": "Lashing Cord Teal 1/4 Solid Brd", "Current Stock": 1 },
+            { "SKU": "33122069_WHITE_1_4_SOLID_BRAID", "Product Name": "Lashing Cord Wht 1/4 Solid Brd", "Current Stock": "null" },
+            { "SKU": "33122069_WHITE_3_16_SOLID_BRAID", "Product Name": "Lashing Cord Wht 3/16 Solid Brd", "Current Stock": 25 },
+            { "SKU": "35K", "Product Name": "35K Knotted", "Current Stock": "null" },
+            { "SKU": "35T", "Product Name": "35T Knotted Netting", "Current Stock": "null" },
+            { "SKU": "5_8_CLIMBING_ROPE", "Product Name": "5/8 Climbing Rope", "Current Stock": 1 },
+            { "SKU": "5_8_CLIMBING_ROPE_BLUE_5_8_NON_SHRINKING", "Product Name": "5/8 Climbing Rope Blu 5/8 Non-Shrink", "Current Stock": 490 },
+            { "SKU": "5_8_CLIMBING_ROPE_GLOW_GREEN_5_8_SHRINKING", "Product Name": "5/8 Climbing Rope Glow Grn 5/8 Shrink", "Current Stock": 15 },
+            { "SKU": "5_8_CLIMBING_ROPE_JUTE_5_8_NON_SHRINKING", "Product Name": "5/8 Climbing Rope JTE 5/8 Non-Shrink", "Current Stock": 0 },
+            { "SKU": "5_8_CLIMBING_ROPE_NAVY_BLUE_5_8_NON_SHRINKING", "Product Name": "5/8 Climbing Rope Nyblu 5/8 Non-Shrink", "Current Stock": 10032 },
+            { "SKU": "5_8_CLIMBING_ROPE_PURPLE_5_8_NON_SHRINKING", "Product Name": "5/8 Climbing Rope Ple 5/8 Non-Shrink", "Current Stock": 1950 },
+            { "SKU": "5_8_CLIMBING_ROPE_WHITE_5_8_NON_SHRINKING", "Product Name": "5/8 Climbing Rope Wht 5/8 Non-Shrink", "Current Stock": 11000 },
+            { "SKU": "5_8_CLIMBING_ROPE_WHITE_5_8_SHRINKING", "Product Name": "5/8 Climbing Rope Wht 5/8 Shrink", "Current Stock": 250 },
+            { "SKU": "5_8_CLIMBING_ROPE-CANDY_CANE-5_8", "Product Name": "5/8 Climbing Rope Red/Wht/Gry 5/8", "Current Stock": 423 },
+            { "SKU": "5_8_CLIMBING_ROPE-GREEN-5_8-NON_SHRINKING", "Product Name": "5/8 Climbing Rope Grn 5/8 Non-Shrink", "Current Stock": 617 },
+            { "SKU": "5_8_CLIMBING_ROPE-JUTE-5_8-SHRINKING", "Product Name": "5/8 Climbing Rope JTE 5/8 SKN", "Current Stock": 300 },
+            { "SKU": "61233300", "Product Name": "Spring Snap Hooks - Medium", "Current Stock": "null" },
+            { "SKU": "70P", "Product Name": "70K Knitted Mesh", "Current Stock": "null" },
+            { "SKU": "74920015", "Product Name": "Thread #92 Polyester Bonded - White", "Current Stock": "null" },
+            { "SKU": "74920015_ASH_NYLON_#69", "Product Name": "Thread Bonded Ash Nyln #69", "Current Stock": 14 },
+            { "SKU": "74920015_ASH_POLYESTER_#69", "Product Name": "Thread Bonded Ash Poly #69", "Current Stock": "null" },
+            { "SKU": "74920015_ASH_POLYESTER_#92", "Product Name": "Thread Bonded Ash Poly #92", "Current Stock": "null" },
+            { "SKU": "74920015_BLACK_NYLON_#46", "Product Name": "Thread Bonded Blk Nyln #46", "Current Stock": "null" },
+            { "SKU": "74920015_BLACK_NYLON_#69", "Product Name": "Thread Bonded Blk Nyln #69", "Current Stock": "null" },
+            { "SKU": "74920015_BLACK_POLYESTER_#277", "Product Name": "Thread Bonded Blk Poly #277", "Current Stock": "null" },
+            { "SKU": "74920015_BLACK_POLYESTER_#46", "Product Name": "Thread Bonded Blk Poly #46", "Current Stock": "null" },
+            { "SKU": "74920015_BLACK_POLYESTER_#92", "Product Name": "Thread Bonded Blk Poly #92", "Current Stock": "null" },
+            { "SKU": "74920015_BLUE_#69", "Product Name": "Thread Bonded Blu #69", "Current Stock": "null" },
+            { "SKU": "74920015_JUTE_POLYESTER_#277", "Product Name": "Thread Bonded JTE Poly #277", "Current Stock": "null" },
+            { "SKU": "74920015_JUTE_POLYESTER_#693", "Product Name": "Thread Bonded JTE Poly #693", "Current Stock": "null" },
+            { "SKU": "74920015_LIGHT_BEIGE_NYLON_#69", "Product Name": "Thread Bonded Ltbge Nyln #69", "Current Stock": "null" },
+            { "SKU": "74920015_NICKEL_#92_NYLON", "Product Name": "Thread Bonded Nikl #92 Nyln", "Current Stock": "null" },
+            { "SKU": "74920015_NICKEL_POLYESTER_#92", "Product Name": "Thread Bonded Nikl Poly #92", "Current Stock": "null" },
+            { "SKU": "74920015_PURPLE_#69", "Product Name": "Thread Bonded Ple #69", "Current Stock": "null" },
+            { "SKU": "74920015_ROSEATE_NYLON_#69", "Product Name": "Thread Bonded Rste Nyln #69", "Current Stock": "null" },
+            { "SKU": "74920015_SAGE_GREEN_NYLON_#69", "Product Name": "Thread Bonded Sage Grn Nyln #69", "Current Stock": "null" },
+            { "SKU": "74920015_SILVER_NYLON_#69", "Product Name": "Thread Bonded Slv Nyln #69", "Current Stock": "null" },
+            { "SKU": "74920015_SISTINE_NYLON_#69", "Product Name": "Thread Bonded Sistine Nyln #69", "Current Stock": "null" },
+            { "SKU": "74920015_TAN_POLYESTER_#92", "Product Name": "Thread Bonded Tan Poly #92", "Current Stock": "null" },
+            { "SKU": "74920015_WHITE_NYLON_#46", "Product Name": "Thread Bonded Wht Nyln #46", "Current Stock": "null" },
+            { "SKU": "74920015_WHITE_NYLON_#69", "Product Name": "Thread Bonded Wht Nyln #69", "Current Stock": "null" },
+            { "SKU": "74920015_WHITE_NYLON_#92", "Product Name": "Thread Bonded Wht Nyln #92", "Current Stock": "null" },
+            { "SKU": "74920015_WHITE_POLYESTER_#69", "Product Name": "Thread Bonded Wht Polyester #69", "Current Stock": "null" },
+            { "SKU": "74920015_WHITE_POLYESTER_#92", "Product Name": "Thread Bonded Wht Poly #92", "Current Stock": "null" },
+            { "SKU": "74920042_2_BLACK", "Product Name": "2 Webbing 2 BLK", "Current Stock": 300 },
+            { "SKU": "74920042_3_BLACK", "Product Name": "2 Webbing 3 BLK", "Current Stock": 1500 },
+            { "SKU": "74920042_BLACK_6", "Product Name": "6 Webbing Blk", "Current Stock": 600 },
+            { "SKU": "74920083", "Product Name": "C-Rings - Small", "Current Stock": "null" },
+            { "SKU": "7492009", "Product Name": "$5/8$ Nylon Rope Braided - Nova Blue", "Current Stock": "null" },
+            { "SKU": "7597602", "Product Name": "Solid Rope - Color Racing 76", "Current Stock": "null" },
+            { "SKU": "80R-100-58EB", "Product Name": "$5/8$ Eye Bolt", "Current Stock": "null" },
+            { "SKU": "80R-900-006", "Product Name": "Standard Column Mounting Bracket with Angles", "Current Stock": "null" },
+            { "SKU": "80R-900-010", "Product Name": "Aluminum Pole", "Current Stock": 100 },
+            { "SKU": "80R-900-1001A", "Product Name": "Standard Floor Mounting Bracket", "Current Stock": "null" },
+            { "SKU": "80R-900-10225", "Product Name": "Spreader Bar - 10'", "Current Stock": "null" },
+            { "SKU": "80R-900-104", "Product Name": "2' Coupler", "Current Stock": 1 },
+            { "SKU": "80R-900-38BK", "Product Name": "50' Cable Assembly (Black end)", "Current Stock": "null" },
+            { "SKU": "80R-900-38BL", "Product Name": "30' Cable Assembly (Blue end)", "Current Stock": "null" },
+            { "SKU": "80R-900-38BR", "Product Name": "25' Cable Assembly (Brown end)", "Current Stock": "null" },
+            { "SKU": "80R-900-38GR", "Product Name": "40' Cable Assembly (Green end)", "Current Stock": "null" },
+            { "SKU": "80R-900-38PL", "Product Name": "15' Cable Assembly (Purple end)", "Current Stock": "null" },
+            { "SKU": "80R-900-38RD", "Product Name": "100' Cable Assembly (Red end)", "Current Stock": "null" },
+            { "SKU": "80R-900-38SO", "Product Name": "13' Cable Assembly (Safety Orange end)", "Current Stock": "null" },
+            { "SKU": "80R-900-38WT", "Product Name": "10' Cable Assembly (White end)", "Current Stock": "null" },
+            { "SKU": "80R-900-38YL", "Product Name": "20' Cable Assembly (Yellow end)", "Current Stock": "null" },
+            { "SKU": "80R-900-HPSP", "Product Name": "Hitch Pin / S.C.", "Current Stock": "null" },
+            { "SKU": "80R-900-HSWL", "Product Name": "Hitch Pin W. L Y", "Current Stock": "null" },
+            { "SKU": "84305275", "Product Name": "D-Rings", "Current Stock": "null" },
+            { "SKU": "91439577", "Product Name": "3/8 Chain", "Current Stock": "null" },
+            { "SKU": "93045766", "Product Name": "1/4 Shock Cord Black", "Current Stock": "null" },
+            { "SKU": "ASL375", "Product Name": "Hourglass Sleeve", "Current Stock": 200 },
+            { "SKU": "ASL375_1_2", "Product Name": "Hourglass Sleeve 1/2", "Current Stock": "null" },
+            { "SKU": "ASL375_1_4", "Product Name": "Hourglass Sleeve 1/4", "Current Stock": "null" }
+        ];
+
+        // Function to load inventory data from localStorage or use initial data
+        function loadInventory() {
+            const storedData = localStorage.getItem('inventoryData');
+            if (storedData) {
+                inventoryData = JSON.parse(storedData);
+            } else {
+                inventoryData = initialData.map(item => ({
+                    ...item,
+                    "Current Stock": item["Current Stock"] === "null" ? 0 : item["Current Stock"]
+                }));
+                saveInventory();
+            }
+        }
+
+        // Function to save inventory data to localStorage
+        function saveInventory() {
+            localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
+        }
+
+        // Function to render the inventory table
+        function renderTable(data) {
+            const tableBody = document.getElementById('inventoryBody');
+            tableBody.innerHTML = '';
+            if (data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-400">No items found.</td></tr>';
+                return;
+            }
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item["SKU"]}</td>
+                    <td>${item["Product Name"]}</td>
+                    <td>${item["Current Stock"]}</td>
+                    <td class="action-btns">
+                        <button class="btn text-sm" onclick="showBarcodeModal('${item["SKU"]}', '${item["Product Name"]}')">Barcode</button>
+                        <button class="btn btn-green text-sm" onclick="checkinItem(${index})">Check In</button>
+                        <button class="btn btn-red text-sm" onclick="checkoutItem(${index})">Check Out</button>
+                        <button class="btn text-sm" onclick="editItem(${index})">Edit</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Function to filter the table based on search input
+        function handleSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filteredData = inventoryData.filter(item => 
+                item["SKU"].toLowerCase().includes(searchTerm) ||
+                item["Product Name"].toLowerCase().includes(searchTerm)
+            );
+            renderTable(filteredData);
+        }
+
+        // Function to show all items
+        function showAllItems() {
+            renderTable(inventoryData);
+            document.getElementById('searchInput').value = '';
+        }
+
+        // Add a new item to the inventory
+        function addItem() {
+            const newSku = document.getElementById('newSkuInput').value.trim();
+            const newProductName = document.getElementById('newProductNameInput').value.trim();
+            const newStock = parseInt(document.getElementById('newStockInput').value.trim(), 10);
+
+            if (!newSku || !newProductName || isNaN(newStock)) {
+                alert("Please fill in all fields with valid data.");
+                return;
+            }
+
+            const newItem = {
+                "SKU": newSku,
+                "Product Name": newProductName,
+                "Current Stock": newStock
+            };
+
+            inventoryData.push(newItem);
+            saveInventory();
+            renderTable(inventoryData);
+            document.getElementById('newSkuInput').value = '';
+            document.getElementById('newProductNameInput').value = '';
+            document.getElementById('newStockInput').value = 0;
+        }
+
+        // Checkout an item (decrement stock)
+        function checkoutItem(index) {
+            if (inventoryData[index]["Current Stock"] > 0) {
+                inventoryData[index]["Current Stock"]--;
+                saveInventory();
+                renderTable(inventoryData);
+            } else {
+                alert("Stock is already at 0.");
+            }
+        }
+
+        // Check in an item (increment stock)
+        function checkinItem(index) {
+            inventoryData[index]["Current Stock"]++;
+            saveInventory();
+            renderTable(inventoryData);
+        }
+
+        // Open the edit modal
+        function editItem(index) {
+            const item = inventoryData[index];
+            document.getElementById('editSkuInput').value = item["SKU"];
+            document.getElementById('editProductNameInput').value = item["Product Name"];
+            document.getElementById('editStockInput').value = item["Current Stock"];
+            document.getElementById('editModal').style.display = 'flex';
+            document.getElementById('saveEditBtn').onclick = () => saveEdit(index);
+        }
+
+        // Save the edited item
+        function saveEdit(index) {
+            inventoryData[index]["SKU"] = document.getElementById('editSkuInput').value.trim();
+            inventoryData[index]["Product Name"] = document.getElementById('editProductNameInput').value.trim();
+            inventoryData[index]["Current Stock"] = parseInt(document.getElementById('editStockInput').value.trim(), 10);
+            saveInventory();
+            renderTable(inventoryData);
+            closeEditModal();
+        }
+
+        // Modal functions for barcode
+        function showBarcodeModal(sku, productName) {
+            const modal = document.getElementById('barcodeModal');
+            const modalProductName = document.getElementById('modalProductName');
+            const barcodeSvg = document.getElementById('barcode-svg');
+            
+            modalProductName.innerText = productName;
+            JsBarcode(barcodeSvg, sku, { format: "CODE128", displayValue: true, fontSize: 24, height: 100 });
+            modal.style.display = 'flex';
+        }
+
+        function closeBarcodeModal() {
+            document.getElementById('barcodeModal').style.display = 'none';
+        }
+
+        function printBarcode() {
+            const printContent = document.getElementById('barcode-svg').outerHTML;
+            const printWindow = window.open('', 'Print-Window');
+            printWindow.document.write('<html><head><title>Print Barcode</title>');
+            printWindow.document.write('<style>body { text-align: center; margin: 20px; } svg { display: block; margin: auto; }</style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write(printContent);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+            closeBarcodeModal();
+        }
+
+        // Modal functions for editing
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // Event listeners
+        document.getElementById('showAllBtn').addEventListener('click', showAllItems);
+        document.getElementById('searchInput').addEventListener('input', handleSearch);
+        document.getElementById('addItemBtn').addEventListener('click', addItem);
+        document.getElementById('closeBarcodeModalBtn').addEventListener('click', closeBarcodeModal);
+        document.getElementById('printBarcodeBtn').addEventListener('click', printBarcode);
+        document.getElementById('closeEditModalBtn').addEventListener('click', closeEditModal);
+
+        // Initial render on page load
+        window.onload = function() {
+            loadInventory();
+            renderTable(inventoryData);
+            const date = new Date().toLocaleString();
+            document.getElementById('generated-date').innerText = `Generated by: Gemini on ${date}`;
+        };
+    </script>
+
+</body>
+</html>

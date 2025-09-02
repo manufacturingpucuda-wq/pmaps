@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Clock-In System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .btn {
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background-color: #4CAF50; /* Green */
+            color: white;
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+        }
+        .btn-primary:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background-color: #007bff; /* Blue */
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+        }
+        .btn-secondary:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        .btn-danger {
+            background-color: #dc3545; /* Red */
+            color: white;
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+        }
+        .btn-edit {
+            background-color: #ffc107; /* Amber/Orange for Edit */
+            color: #333; /* Darker text for contrast */
+            box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
+        }
+        .btn-edit:hover {
+            background-color: #e0a800;
+            transform: translateY(-2px);
+        }
+        .input-field {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        .card {
+            background-color: #f9f9f9;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #eee;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #eef;
+            font-weight: 600;
+            color: #555;
+        }
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+        .status-inactive {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .status-working {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-on-lunch {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+        }
+        .modal-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #aaa;
+        }
+        .modal-close-btn:hover {
+            color: #555;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* New style for temporary status message */
+        .temporary-message {
+            font-size: 2.2rem; /* Even Larger font */
+            font-weight: 700;
+            color: #28a745; /* Success green */
+            animation: fadeInOut 5s forwards; /* Fade in and out over 5 seconds */
+            position: absolute; /* Position over other elements */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%; /* Ensure it fits */
+            text-align: center;
+            z-index: 500; /* Above regular content, below modals */
+            background-color: rgba(255, 255, 255, 0.9); /* Slight background for readability */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -30px); }
+            10% { opacity: 1; transform: translate(-50%, -50%); }
+            90% { opacity: 1; transform: translate(-50%, -50%); }
+            100% { opacity: 0; transform: translate(-50%, -70px); }
+        }
+        @media (min-width: 768px) {
+            .container {
+                flex-direction: row;
+                gap: 40px;
+            }
+            .section {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+    <div class="container">
+        <div class="section flex-1 relative" id="employeeClockInSection">
+            <h2 class="section-title">Pucuda Manufacturing inc. Employee Clock-In</h2>
+            <div class="card p-6 mb-6 text-center">
+                <p id="currentUserName" class="text-xl font-bold text-blue-700 mt-2">Welcome!</p>
+                <p id="temporaryStatusMessage" class="temporary-message mt-4 hidden"></p>
+                <p id="currentStatus" class="text-lg font-semibold mt-4 hidden"></p>
+            </div>
+            <input type="text" id="hiddenClockInput"
+                         class="absolute opacity-0 pointer-events-none"
+                         style="width: 1px; height: 1px; top: -9999px; left: -9999px;"
+                         aria-hidden="true" autofocus>
+            <div id="clockInOutSection" class="flex flex-col gap-4">
+                <p id="nextActionText" class="text-gray-700 text-center text-2xl font-bold">Welcome!</p>
+                <p class="text-gray-600 text-center text-lg mb-4">
+                    Please scan your Employee ID.
+                </p>
+            </div>
+        </div>
+
+        <div class="section flex-1 hidden" id="adminPanelContainer">
+            <h2 class="section-title">Admin Panel</h2>
+            <div id="adminContent">
+                <div id="qrCodeDisplayArea" class="card p-6 mb-6 text-center">
+                    <p class="text-gray-700 mb-4 text-lg font-semibold">This Device's Unique ID:</p>
+                    <div id="qrcode" class="mx-auto mb-4 p-2 bg-white rounded-lg shadow-md" style="width: 200px; height: 200px;"></div>
+                    <p id="currentDeviceIdDisplay" class="text-gray-600 font-mono text-sm break-all"></p>
+                </div>
+
+                <div class="card p-6 mb-6">
+                    <h3 class="text-xl font-bold mb-4 text-center text-gray-800">Manage Employees</h3>
+                    <div class="flex flex-col gap-2 mb-4">
+                        <input type="text" id="newEmployeeId" class="input-field" placeholder="Employee ID (e.g., EMP001)">
+                        <input type="text" id="newEmployeeName" class="input-field" placeholder="Employee Name (e.g., Efrain)">
+                        <input type="password" id="newEmployeePin" class="input-field" placeholder="Employee PIN (optional, e.g., 1234)">
+                        <input type="number" id="newEmployeePayRate" class="input-field" placeholder="Pay Rate (e.g., 15.00)" step="0.01">
+                        <button id="addEmployeeBtn" class="btn btn-secondary">Add/Update Employee</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white rounded-lg shadow-sm">
+                            <thead>
+                                <tr>
+                                    <th>Employee ID</th>
+                                    <th>Name</th>
+                                    <th>Pay Rate</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeeList">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card p-6 mb-6">
+                    <h3 class="text-xl font-bold mb-4 text-center text-gray-800">Employee Time Card</h3>
+                    <div class="flex flex-col md:flex-row gap-2 mb-4">
+                        <input type="text" id="timeCardEmployeeId" class="input-field flex-grow" placeholder="Employee ID for Time Card">
+                        <input type="date" id="timeCardStartDate" class="input-field flex-grow" title="Start Date">
+                        <input type="date" id="timeCardEndDate" class="input-field flex-grow" title="End Date">
+                        <button id="loadTimeCardBtn" class="btn btn-secondary">Load Time Card</button>
+                    </div>
+                    <div id="timeCardDetails" class="mt-4 p-4 border border-gray-200 rounded-lg bg-white">
+                        <p class="text-gray-600 text-center">Select an employee ID and click "Load Time Card" to view their hours.</p>
+                    </div>
+                    <div class="flex gap-4 mt-4">
+                        <button id="printTimeCardBtn" class="btn btn-primary flex-1 hidden">Print Time Card</button>
+                    </div>
+                </div>
+                
+                <div class="card p-6 mb-6">
+                    <h3 class="text-xl font-bold mb-4 text-center text-gray-800">Export All Hours</h3>
+                    <div class="flex flex-col md:flex-row gap-2 mb-4">
+                        <input type="date" id="exportStartDate" class="input-field flex-grow" title="Start Date">
+                        <input type="date" id="exportEndDate" class="input-field flex-grow" title="End Date">
+                        <button id="exportAllHoursBtn" class="btn btn-primary">Export All Hours to CSV</button>
+                    </div>
+                </div>
+
+                <div class="card p-6 mb-6">
+                    <h3 class="text-xl font-bold mb-4 text-center text-gray-800">Daily Hours Summary</h3>
+                    <button id="printDailyHoursSummaryBtn" class="btn btn-primary w-full mb-4">Print Today's Total Hours</button>
+                    <div id="dailyHoursSummary" class="mt-4 p-4 border border-gray-200 rounded-lg bg-white">
+                        <p class="text-gray-600 text-center">Click "Print Today's Total Hours" to see today's summary.</p>
+                    </div>
+                </div>
+
+                <div class="card p-6">
+                    <h3 class="text-xl font-bold mb-4 text-center text-gray-800">Clock-In/Out Log</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white rounded-lg shadow-sm">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Type</th>
+                                    <th>Time</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clockLog">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+                <button id="exitAdminPanelBtn" class="btn btn-danger w-full mt-6">Exit Admin Panel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeMessageModal()">&times;</button>
+            <h3 id="messageTitle" class="text-2xl font-bold mb-4 text-gray-800"></h3>
+            <p id="messageBody" class="text-gray-700 mb-6"></p>
+            <button class="btn btn-primary" onclick="closeMessageModal()">OK</button>
+        </div>
+    </div>
+
+    <!-- New Modal for Editing a Clock Log Entry -->
+    <div id="editLogModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeEditLogModal()">&times;</button>
+            <h3 class="text-2xl font-bold mb-4 text-gray-800">Edit Log Entry</h3>
+            <div class="flex flex-col gap-4">
+                <input type="hidden" id="editLogIndex">
+                <label for="editLogType" class="text-left font-semibold text-gray-700">Type:</label>
+                <select id="editLogType" class="input-field">
+                    <option value="clock-in">Clock In</option>
+                    <option value="lunch-out">Lunch Out</option>
+                    <option value="lunch-in">Lunch In</option>
+                    <option value="clock-out">Clock Out</option>
+                </select>
+                <label for="editLogTimestamp" class="text-left font-semibold text-gray-700">Timestamp:</label>
+                <input type="datetime-local" id="editLogTimestamp" class="input-field">
+                <button id="saveEditBtn" class="btn btn-primary">Save Changes</button>
+                <button class="btn btn-danger" onclick="closeEditLogModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        // In-memory data storage. Note: This data is not secure and will be lost if cleared.
+        // Employee status can now be 'inactive', 'working', or 'on-lunch'.
+        let employees = [
+            // Your specified workers with a new 'payRate' field
+            { id: "492034", name: "Luis Banda", pin: "492034", status: "inactive", payRate: 18.50, lastUpdated: new Date().getTime() },
+            { id: "492014", name: "Dailyn Godinez", pin: "492014", status: "inactive", payRate: 15.00, lastUpdated: new Date().getTime() },
+            { id: "492061", name: "Mareus Peterson", pin: "492061", status: "inactive", payRate: 17.25, lastUpdated: new Date().getTime() },
+            { id: "492062", name: "Omari Gainer", pin: "492062", status: "inactive", payRate: 16.50, lastUpdated: new Date().getTime() },
+            { id: "492043", name: "Kleymers Silva", pin: "492043", status: "inactive", payRate: 19.00, lastUpdated: new Date().getTime() },
+            { id: "J013", name: "Jose Ortiz", pin: "1013", status: "inactive", payRate: 20.00, lastUpdated: new Date().getTime() },
+            { id: "492018", name: "Juan Rojas", pin: "492018", status: "inactive", payRate: 18.00, lastUpdated: new Date().getTime() },
+            { id: "492006", name: "Joe Bastidas", pin: "492006", status: "inactive", payRate: 21.00, lastUpdated: new Date().getTime() },
+            { id: "492001", name: "Efrain Vera", pin: "492001", status: "inactive", payRate: 22.50, lastUpdated: new Date().getTime() }
+        ];
+        let clockLog = []; // Stores { employeeId, userName, type, timestamp, deviceId }
+        let currentDeviceId = localStorage.getItem('deviceId') || crypto.randomUUID(); // Unique ID for this browser session
+        localStorage.setItem('deviceId', currentDeviceId); // Store device ID
+
+        // Load data from localStorage if available
+        if (localStorage.getItem('employees')) {
+            employees = JSON.parse(localStorage.getItem('employees'));
+        }
+        if (localStorage.getItem('clockLog')) {
+            clockLog = JSON.parse(localStorage.getItem('clockLog'));
+        }
+
+        let loadedTimeCardData = null; // Stores data for print/export
+        let hiddenInputTimer = null;
+        const DEBOUNCE_DELAY_MS = 300; // Milliseconds to wait after last input before processing
+        const ADMIN_BARCODE = '7025044143'; // Specific barcode to unlock admin panel
+
+        // --- DOM Elements ---
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const qrcodeDiv = document.getElementById('qrcode');
+        const currentDeviceIdDisplay = document.getElementById('currentDeviceIdDisplay');
+        const currentUserNameDisplay = document.getElementById('currentUserName');
+        const temporaryStatusMessage = document.getElementById('temporaryStatusMessage');
+        const currentStatusDisplay = document.getElementById('currentStatus');
+        const hiddenClockInput = document.getElementById('hiddenClockInput');
+        const employeeClockInSection = document.getElementById('employeeClockInSection');
+        const adminPanelContainer = document.getElementById('adminPanelContainer');
+        const nextActionText = document.getElementById('nextActionText'); // New text element for guidance
+        const newEmployeeIdInput = document.getElementById('newEmployeeId');
+        const newEmployeeNameInput = document.getElementById('newEmployeeName');
+        const newEmployeePinInput = document.getElementById('newEmployeePin');
+        const newEmployeePayRateInput = document.getElementById('newEmployeePayRate'); // New input
+        const addEmployeeBtn = document.getElementById('addEmployeeBtn');
+        const employeeListTable = document.getElementById('employeeList');
+        const clockLogTable = document.getElementById('clockLog');
+        const timeCardEmployeeIdInput = document.getElementById('timeCardEmployeeId');
+        const timeCardStartDateInput = document.getElementById('timeCardStartDate');
+        const timeCardEndDateInput = document.getElementById('timeCardEndDate');
+        const loadTimeCardBtn = document.getElementById('loadTimeCardBtn');
+        const timeCardDetailsDiv = document.getElementById('timeCardDetails');
+        const printTimeCardBtn = document.getElementById('printTimeCardBtn');
+        const exitAdminPanelBtn = document.getElementById('exitAdminPanelBtn');
+        const printDailyHoursSummaryBtn = document.getElementById('printDailyHoursSummaryBtn');
+        const dailyHoursSummaryDiv = document.getElementById('dailyHoursSummary');
+        const exportAllHoursBtn = document.getElementById('exportAllHoursBtn'); // New button
+        const exportStartDateInput = document.getElementById('exportStartDate'); // New input
+        const exportEndDateInput = document.getElementById('exportEndDate'); // New input
+
+        // Edit Log Modal elements
+        const editLogModal = document.getElementById('editLogModal');
+        const editLogIndexInput = document.getElementById('editLogIndex');
+        const editLogTypeSelect = document.getElementById('editLogType');
+        const editLogTimestampInput = document.getElementById('editLogTimestamp');
+        const saveEditBtn = document.getElementById('saveEditBtn');
+
+
+        const TEMPORARY_MESSAGE_DURATION_MS = 5000;
+        const ADMIN_RETURN_DELAY_MS = 15000;
+
+        // --- Utility Functions ---
+        function showLoading() { loadingOverlay.classList.add('show'); }
+        function hideLoading() { loadingOverlay.classList.remove('show'); }
+
+        function showMessageModal(title, body) {
+            document.getElementById('messageTitle').innerText = title;
+            document.getElementById('messageBody').innerText = body;
+            document.getElementById('messageModal').classList.add('show');
+        }
+
+        window.closeMessageModal = function() {
+            document.getElementById('messageModal').classList.remove('show');
+        }
+
+        window.closeEditLogModal = function() {
+            editLogModal.classList.remove('show');
+        }
+
+        /**
+         * Formats a timestamp (milliseconds) into a localized date and time string.
+         * @param {number} timestamp - The timestamp in milliseconds.
+         * @returns {string} Formatted date and time string.
+         */
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = new Date(timestamp);
+            return date.toLocaleString();
+        }
+
+        /**
+         * Formats a Date object into a 'YYYY-MM-DDTHH:mm' string for datetime-local input.
+         * @param {Date} date - The date object.
+         * @returns {string} Formatted date and time string.
+         */
+        function formatToDatetimeLocal(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        /**
+         * Formats a date object into a 'YYYY-MM-DD' string.
+         * @param {Date} date - The date object.
+         * @returns {string} Formatted date string.
+         */
+        function formatDateToYYYYMMDD(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        /**
+         * Formats a duration in milliseconds into a human-readable string (e.g., "8h 30m 15s").
+         * @param {number} milliseconds - The duration in milliseconds.
+         * @returns {string} Formatted duration string.
+         */
+        function formatDuration(milliseconds) {
+            if (isNaN(milliseconds) || milliseconds < 0) return '0h 0m';
+            const totalSeconds = Math.floor(milliseconds / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            return `${hours}h ${minutes}m ${seconds}s`;
+        }
+
+        /**
+         * Calculates total working time and lunch time from a sorted array of logs.
+         * This function is now a core utility for multiple reports.
+         * @param {Array<Object>} dayLogs - An array of log entries for a single day, sorted by timestamp.
+         * @returns {{workingTime: number, lunchTime: number}} The calculated times in milliseconds.
+         */
+        function calculateTimes(dayLogs) {
+            let clockInTime = null;
+            let lunchOutTime = null;
+            let totalWorkingTime = 0;
+            let totalLunchTime = 0;
+        
+            dayLogs.forEach(log => {
+                switch(log.type) {
+                    case 'clock-in':
+                        clockInTime = log.timestamp;
+                        break;
+                    case 'lunch-out':
+                        if (clockInTime) {
+                            totalWorkingTime += (log.timestamp - clockInTime);
+                        }
+                        lunchOutTime = log.timestamp;
+                        break;
+                    case 'lunch-in':
+                        if (lunchOutTime) {
+                            totalLunchTime += (log.timestamp - lunchOutTime);
+                        }
+                        clockInTime = log.timestamp; // Resume working
+                        lunchOutTime = null;
+                        break;
+                    case 'clock-out':
+                        if (clockInTime) {
+                            totalWorkingTime += (log.timestamp - clockInTime);
+                        }
+                        clockInTime = null;
+                        break;
+                }
+            });
+        
+            // Handle open shifts or lunches
+            const now = new Date().getTime();
+            if (clockInTime) {
+                totalWorkingTime += (now - clockInTime);
+            }
+            if (lunchOutTime) {
+                totalLunchTime += (now - lunchOutTime);
+            }
+            return { workingTime: totalWorkingTime, lunchTime: totalLunchTime };
+        }
+
+        /**
+         * Ensures the hidden input field is focused to capture scanner/keypad input.
+         */
+        function focusHiddenInput() {
+            hiddenClockInput.focus();
+        }
+
+        /**
+         * Updates the on-screen instructions for the user.
+         */
+        function updateNextActionText(employee) {
+            if (!employee) {
+                nextActionText.textContent = "Welcome!";
+                return;
+            }
+            let nextAction = "";
+            switch(employee.status) {
+                case 'inactive':
+                    nextAction = "Clock In";
+                    break;
+                case 'working':
+                    nextAction = "Start Lunch or Clock Out";
+                    break;
+                case 'on-lunch':
+                    nextAction = "End Lunch";
+                    break;
+            }
+            nextActionText.textContent = `${employee.name}, please scan to ${nextAction}.`;
+        }
+
+        /**
+         * Returns the view to the main employee clock-in interface.
+         */
+        function returnToEmployeeView() {
+            adminPanelContainer.classList.add('hidden');
+            employeeClockInSection.classList.remove('hidden');
+            currentUserNameDisplay.textContent = "Welcome!";
+            temporaryStatusMessage.classList.add('hidden');
+            currentStatusDisplay.classList.remove('hidden');
+            currentStatusDisplay.innerHTML = ``;
+            hiddenClockInput.value = '';
+            updateNextActionText(null); // Reset next action text
+            focusHiddenInput();
+        }
+
+        // --- Core Initialization ---
+        function initializeApp() {
+            showLoading();
+            employeeClockInSection.classList.remove('hidden');
+            adminPanelContainer.classList.add('hidden');
+            currentUserNameDisplay.textContent = "Welcome!";
+            currentStatusDisplay.innerHTML = ``;
+            renderEmployeeList(employees);
+            renderClockLog(clockLog);
+            hideLoading();
+            console.log("Application initialized (in-memory mode with localStorage).");
+            focusHiddenInput();
+        }
+
+        // --- Save Data to Local Storage ---
+        function saveData() {
+            localStorage.setItem('employees', JSON.stringify(employees));
+            localStorage.setItem('clockLog', JSON.stringify(clockLog));
+        }
+
+        // --- QR Code Generation ---
+        function generateQRCode(text) {
+            if (qrcodeDiv.firstChild) {
+                qrcodeDiv.innerHTML = '';
+            }
+            new QRCode(qrcodeDiv, {
+                text: text,
+                width: 180,
+                height: 180,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        /**
+         * Handles the clock-in/out/lunch action based on the hidden input value.
+         * The logic now progresses through a state machine:
+         * inactive -> working -> on-lunch -> working -> inactive
+         */
+        async function handleClockInOut() {
+            const employeeIdentifier = hiddenClockInput.value.trim();
+            if (!employeeIdentifier) {
+                return;
+            }
+
+            if (employeeIdentifier === ADMIN_BARCODE) {
+                hiddenClockInput.value = '';
+                enterAdminPanel();
+                return;
+            }
+
+            showLoading();
+            try {
+                const employeeIndex = employees.findIndex(emp => String(emp.id) === employeeIdentifier || (emp.pin && String(emp.pin) === employeeIdentifier));
+
+                if (employeeIndex === -1) {
+                    showMessageModal("Employee Not Found", "Employee ID/PIN not recognized. Please check your input or contact admin.");
+                    hiddenClockInput.value = '';
+                    focusHiddenInput();
+                    return;
+                }
+
+                const employee = employees[employeeIndex];
+                const isPinAttempt = /^\d+$/.test(employeeIdentifier);
+                if (isPinAttempt && employee.pin && String(employee.pin) !== employeeIdentifier) {
+                    showMessageModal("PIN Error", "Incorrect PIN. Please try again.");
+                    hiddenClockInput.value = '';
+                    focusHiddenInput();
+                    return;
+                }
+
+                let newStatus, logType, statusMessage;
+
+                switch (employee.status) {
+                    case 'inactive':
+                        newStatus = 'working';
+                        logType = 'clock-in';
+                        statusMessage = 'Clocked In';
+                        break;
+                    case 'working':
+                        // Check if the last log entry was a lunch-in. If so, next action is clock-out.
+                        const lastLog = clockLog.filter(log => String(log.employeeId) === employee.id).sort((a,b) => b.timestamp - a.timestamp)[0];
+                        if (lastLog && lastLog.type === 'lunch-in') {
+                            newStatus = 'inactive';
+                            logType = 'clock-out';
+                            statusMessage = 'Clocked Out';
+                        } else {
+                            newStatus = 'on-lunch';
+                            logType = 'lunch-out';
+                            statusMessage = 'Started Lunch';
+                        }
+                        break;
+                    case 'on-lunch':
+                        newStatus = 'working';
+                        logType = 'lunch-in';
+                        statusMessage = 'Ended Lunch';
+                        break;
+                    default:
+                        // This should not happen
+                        showMessageModal("Error", "Employee state is invalid. Please contact admin.");
+                        hideLoading();
+                        return;
+                }
+
+                employee.status = newStatus;
+                employee.lastUpdated = new Date().getTime();
+
+                clockLog.push({
+                    employeeId: employee.id,
+                    userName: employee.name,
+                    type: logType,
+                    timestamp: new Date().getTime(),
+                    deviceId: currentDeviceId,
+                    logId: crypto.randomUUID() // Add a unique ID for editing
+                });
+
+                saveData();
+
+                currentUserNameDisplay.textContent = "";
+                currentStatusDisplay.classList.add('hidden');
+                temporaryStatusMessage.textContent = `${employee.name}: ${statusMessage} at ${new Date().toLocaleTimeString()}`;
+                temporaryStatusMessage.classList.remove('hidden');
+                hiddenClockInput.value = '';
+                updateNextActionText(employee); // Update the instruction for the next employee
+
+                renderEmployeeList(employees);
+                renderClockLog(clockLog);
+
+                setTimeout(() => {
+                    temporaryStatusMessage.classList.add('hidden');
+                    currentUserNameDisplay.textContent = "Welcome!";
+                    currentStatusDisplay.classList.remove('hidden');
+                    currentStatusDisplay.innerHTML = ``;
+                    updateNextActionText(null); // Reset to default instruction
+                    focusHiddenInput();
+                }, TEMPORARY_MESSAGE_DURATION_MS);
+
+            } catch (error) {
+                console.error("Error during clock event:", error);
+                showMessageModal("Error", "Failed to record clock event. Please try again.");
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // --- Admin Panel Functions ---
+
+        function enterAdminPanel() {
+            employeeClockInSection.classList.add('hidden');
+            adminPanelContainer.classList.remove('hidden');
+            currentDeviceIdDisplay.textContent = currentDeviceId;
+            generateQRCode(currentDeviceId);
+            renderEmployeeList(employees);
+            renderClockLog(clockLog);
+            timeCardEmployeeIdInput.value = '';
+            timeCardStartDateInput.value = '';
+            timeCardEndDateInput.value = '';
+            timeCardDetailsDiv.innerHTML = '<p class="text-gray-600 text-center">Select an employee ID and click "Load Time Card" to view their hours.</p>';
+            printTimeCardBtn.classList.add('hidden');
+            focusHiddenInput();
+        }
+
+        /**
+         * Populates the employee management form with the details of the employee to be edited.
+         * @param {string} employeeId The ID of the employee to edit.
+         */
+        function editEmployee(employeeId) {
+            const employeeToEdit = employees.find(emp => String(emp.id) === String(employeeId));
+            if (employeeToEdit) {
+                newEmployeeIdInput.value = employeeToEdit.id;
+                newEmployeeNameInput.value = employeeToEdit.name;
+                newEmployeePinInput.value = employeeToEdit.pin;
+                newEmployeePayRateInput.value = employeeToEdit.payRate;
+                showMessageModal("Edit Employee", `Now editing employee: ${employeeToEdit.name}. Modify details and click "Add/Update Employee".`);
+            } else {
+                showMessageModal("Error", "Employee not found for editing.");
+            }
+        }
+
+        /**
+         * Adds a new employee or updates an existing one.
+         */
+        function addOrUpdateEmployee() {
+            const id = newEmployeeIdInput.value.trim();
+            const name = newEmployeeNameInput.value.trim();
+            const pin = newEmployeePinInput.value.trim();
+            const payRate = parseFloat(newEmployeePayRateInput.value);
+
+            if (!id || !name) {
+                showMessageModal("Input Error", "Please enter Employee ID and Name.");
+                return;
+            }
+            if (pin && !/^\d+$/.test(pin)) {
+                showMessageModal("Input Error", "PIN must contain only digits.");
+                return;
+            }
+            if (isNaN(payRate) || payRate <= 0) {
+                 showMessageModal("Input Error", "Please enter a valid pay rate.");
+                 return;
+            }
+
+            if (pin) {
+                const existingPinUser = employees.find(emp => emp.pin && String(emp.pin) === pin && String(emp.id) !== id);
+                if (existingPinUser) {
+                    showMessageModal("PIN Error", `PIN "${pin}" is already assigned to another employee (${existingPinUser.name}). Please choose a unique PIN.`);
+                    return;
+                }
+            }
+
+            showLoading();
+            try {
+                const existingEmployeeIndex = employees.findIndex(emp => String(emp.id) === id);
+
+                if (existingEmployeeIndex !== -1) {
+                    employees[existingEmployeeIndex].name = name;
+                    employees[existingEmployeeIndex].pin = pin;
+                    employees[existingEmployeeIndex].payRate = payRate;
+                    employees[existingEmployeeIndex].lastUpdated = new Date().getTime();
+                    showMessageModal("Success", `Employee "${name}" (${id}) updated.`);
+                } else {
+                    employees.push({
+                        id: id,
+                        name: name,
+                        pin: pin,
+                        payRate: payRate,
+                        status: 'inactive',
+                        lastUpdated: new Date().getTime()
+                    });
+                    showMessageModal("Success", `New employee "${name}" (${id}) added.`);
+                }
+
+                saveData();
+                renderEmployeeList(employees);
+                newEmployeeIdInput.value = '';
+                newEmployeeNameInput.value = '';
+                newEmployeePinInput.value = '';
+                newEmployeePayRateInput.value = '';
+            } catch (error) {
+                console.error("Error adding/updating employee:", error);
+                showMessageModal("Error", "Failed to add/update employee.");
+            } finally {
+                hideLoading();
+            }
+        }
+
+        /**
+         * Deletes an employee after a confirmation prompt.
+         * @param {string} employeeId The ID of the employee to delete.
+         */
+        function deleteEmployee(employeeId) {
+            const confirmDelete = () => {
+                const initialLength = employees.length;
+                employees = employees.filter(emp => String(emp.id) !== String(employeeId));
+                if (employees.length < initialLength) {
+                    saveData();
+                    renderEmployeeList(employees);
+                    clockLog = clockLog.filter(log => String(log.employeeId) !== String(employeeId));
+                    saveData();
+                    renderClockLog(clockLog);
+                    showMessageModal("Success", `Employee ${employeeId} and their data have been deleted.`);
+                } else {
+                    showMessageModal("Error", `Employee ${employeeId} was not found.`);
+                }
+            };
+            showMessageModal("Confirm Delete", `Are you sure you want to delete employee ${employeeId}? This action cannot be undone.`, confirmDelete);
+            const okBtn = document.querySelector('#messageModal .btn-primary');
+            okBtn.onclick = confirmDelete;
+        }
+
+        /**
+         * Renders the employee list in the admin panel.
+         * @param {Array<Object>} employeeList The array of employees to display.
+         */
+        function renderEmployeeList(employeeList) {
+            employeeListTable.innerHTML = '';
+            employeeList.forEach(employee => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${employee.id}</td>
+                    <td>${employee.name}</td>
+                    <td>$${employee.payRate.toFixed(2) || 'N/A'}</td>
+                    <td><span class="status-badge status-${employee.status}">${employee.status.charAt(0).toUpperCase() + employee.status.slice(1).replace('-', ' ')}</span></td>
+                    <td class="flex gap-2">
+                        <button class="btn btn-edit text-sm px-3 py-1" onclick="editEmployee('${employee.id}')">Edit</button>
+                        <button class="btn btn-danger text-sm px-3 py-1" onclick="deleteEmployee('${employee.id}')">Delete</button>
+                    </td>
+                `;
+                employeeListTable.appendChild(row);
+            });
+        }
+
+        /**
+         * Renders the clock log in the admin panel.
+         * @param {Array<Object>} log The array of clock log entries to display.
+         */
+        function renderClockLog(log) {
+            clockLogTable.innerHTML = '';
+            log.sort((a, b) => b.timestamp - a.timestamp);
+            log.forEach((entry, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${entry.userName} (${entry.employeeId})</td>
+                    <td>${entry.type.charAt(0).toUpperCase() + entry.type.slice(1).replace('-', ' ')}</td>
+                    <td>${formatTimestamp(entry.timestamp)}</td>
+                    <td class="flex gap-2">
+                        <button class="btn btn-edit text-sm px-3 py-1" onclick="openEditLogModal('${entry.logId}')">Edit</button>
+                        <button class="btn btn-danger text-sm px-3 py-1" onclick="deleteLogEntry('${entry.logId}')">Delete</button>
+                    </td>
+                `;
+                clockLogTable.appendChild(row);
+            });
+        }
+
+        /**
+         * Opens the modal to edit a specific log entry.
+         * @param {string} logId The unique ID of the log entry.
+         */
+        function openEditLogModal(logId) {
+            const entryIndex = clockLog.findIndex(entry => entry.logId === logId);
+            if (entryIndex === -1) {
+                showMessageModal("Error", "Log entry not found.");
+                return;
+            }
+            const entry = clockLog[entryIndex];
+            editLogIndexInput.value = entryIndex;
+            editLogTypeSelect.value = entry.type;
+            const date = new Date(entry.timestamp);
+            editLogTimestampInput.value = formatToDatetimeLocal(date);
+            editLogModal.classList.add('show');
+        }
+
+        /**
+         * Saves the changes made in the edit log modal.
+         */
+        function saveEditedLogEntry() {
+            const index = parseInt(editLogIndexInput.value, 10);
+            const newType = editLogTypeSelect.value;
+            const newTimestampStr = editLogTimestampInput.value;
+
+            if (isNaN(index) || !newTimestampStr) {
+                showMessageModal("Error", "Invalid data for update.");
+                return;
+            }
+
+            const newDate = new Date(newTimestampStr);
+            if (isNaN(newDate.getTime())) {
+                showMessageModal("Error", "Invalid date and time format.");
+                return;
+            }
+
+            clockLog[index].type = newType;
+            clockLog[index].timestamp = newDate.getTime();
+            saveData();
+            renderClockLog(clockLog);
+            closeEditLogModal();
+            showMessageModal("Success", "Log entry updated successfully.");
+        }
+
+
+        /**
+         * Deletes a specific log entry.
+         * @param {string} logId The unique ID of the log entry to delete.
+         */
+        function deleteLogEntry(logId) {
+            const confirmDelete = () => {
+                clockLog = clockLog.filter(entry => entry.logId !== logId);
+                saveData();
+                renderClockLog(clockLog);
+                showMessageModal("Success", "Log entry deleted.");
+            };
+            showMessageModal("Confirm Delete", "Are you sure you want to delete this log entry? This action cannot be undone.", confirmDelete);
+            const okBtn = document.querySelector('#messageModal .btn-primary');
+            okBtn.onclick = confirmDelete;
+        }
+
+        /**
+         * Calculates and displays an employee's total hours and pay for a given date range.
+         */
+        function loadTimeCard() {
+            const employeeId = timeCardEmployeeIdInput.value.trim();
+            const startDateStr = timeCardStartDateInput.value;
+            const endDateStr = timeCardEndDateInput.value;
+
+            if (!employeeId || !startDateStr || !endDateStr) {
+                showMessageModal("Input Error", "Please provide an Employee ID, Start Date, and End Date.");
+                return;
+            }
+
+            const employee = employees.find(emp => String(emp.id) === employeeId);
+            if (!employee) {
+                showMessageModal("Error", `Employee with ID "${employeeId}" not found.`);
+                return;
+            }
+
+            const startDate = new Date(startDateStr);
+            const endDate = new Date(endDateStr);
+            endDate.setHours(23, 59, 59, 999);
+
+            const employeeLogs = clockLog.filter(log =>
+                String(log.employeeId) === employeeId &&
+                log.timestamp >= startDate.getTime() &&
+                log.timestamp <= endDate.getTime()
+            ).sort((a, b) => a.timestamp - b.timestamp);
+
+            const dailyReport = {};
+            employeeLogs.forEach(log => {
+                const dateKey = formatDateToYYYYMMDD(new Date(log.timestamp));
+                if (!dailyReport[dateKey]) {
+                    dailyReport[dateKey] = { logs: [], workingTime: 0, totalShift: 0, lunchBreak: 0 };
+                }
+                dailyReport[dateKey].logs.push(log);
+            });
+
+            // Process logs for each day to calculate hours
+            let totalWorkingTimePeriod = 0;
+            Object.keys(dailyReport).forEach(date => {
+                const dayLogs = dailyReport[date].logs;
+                const { workingTime, lunchTime } = calculateTimes(dayLogs);
+                dailyReport[date].workingTime = workingTime;
+                dailyReport[date].lunchBreak = lunchTime;
+                totalWorkingTimePeriod += workingTime;
+                const firstLog = dayLogs[0] ? dayLogs[0].timestamp : null;
+                const lastLog = dayLogs[dayLogs.length - 1] ? dayLogs[dayLogs.length - 1].timestamp : new Date().getTime();
+                if (firstLog && lastLog) {
+                    dailyReport[date].totalShift = lastLog - firstLog;
+                }
+            });
+
+            const totalPay = (totalWorkingTimePeriod / (1000 * 60 * 60)) * employee.payRate;
+            const detailsHtml = Object.keys(dailyReport).map(date => {
+                const dayData = dailyReport[date];
+                const dayLogsHtml = dayData.logs.map(log => `<li>${log.type.replace('-', ' ')} at ${formatTimestamp(log.timestamp)}</li>`).join('');
+
+                return `
+                    <div class="mt-4 p-4 border border-gray-200 rounded-lg">
+                        <h4 class="text-md font-bold text-gray-800">${date}</h4>
+                        <p>Total Working Time: <span class="font-normal">${formatDuration(dayData.workingTime)}</span></p>
+                        <p>Total Shift Time: <span class="font-normal">${formatDuration(dayData.totalShift)}</span></p>
+                        <p>Total Lunch Break: <span class="font-normal">${formatDuration(dayData.lunchBreak)}</span></p>
+                        <h5 class="font-semibold mt-2">Log Details:</h5>
+                        <ul class="list-disc list-inside mt-1 text-sm text-gray-700">
+                            ${dayLogsHtml}
+                        </ul>
+                    </div>
+                `;
+            }).join('');
+
+            const totalHtml = `
+                <div class="border-t pt-4 mt-4">
+                    <h3 class="text-xl font-bold text-gray-900 text-center">Total Working Hours for Period: <span class="text-blue-700">${formatDuration(totalWorkingTimePeriod)}</span></h3>
+                    <h4 class="text-lg font-bold text-gray-800 text-center">Total Pay for Period: <span class="text-green-700">$${totalPay.toFixed(2)}</span></h4>
+                </div>
+            `;
+            const headerHtml = `
+                <h3 class="text-xl font-bold mb-4 text-center text-gray-800">Time Card for ${employee.name} (${employee.id})</h3>
+                <p class="text-center text-gray-600">Pay Rate: $${employee.payRate.toFixed(2)}/hour</p>
+                <p class="text-center text-gray-600">Period: ${startDateStr} to ${endDateStr}</p>
+            `;
+            timeCardDetailsDiv.innerHTML = headerHtml + detailsHtml + totalHtml;
+            loadedTimeCardData = {
+                employeeId,
+                startDateStr,
+                endDateStr,
+                dailyReport
+            };
+
+            printTimeCardBtn.classList.remove('hidden');
+        }
+
+        /**
+         * Prints the loaded time card report.
+         */
+        function printTimeCard() {
+            if (!loadedTimeCardData) {
+                showMessageModal("Error", "No time card data loaded to print.");
+                return;
+            }
+
+            const printContent = timeCardDetailsDiv.innerHTML;
+            const originalContents = document.body.innerHTML;
+
+            document.body.innerHTML = `
+                <div style="font-family: 'Inter', sans-serif; padding: 20px;">
+                    ${printContent}
+                </div>
+            `;
+            window.print();
+            document.body.innerHTML = originalContents;
+            location.reload();
+        }
+
+        /**
+         * Generates and prints a summary of today's total hours for all employees.
+         */
+        function printDailyHoursSummary() {
+            const today = new Date();
+            const todayKey = formatDateToYYYYMMDD(today);
+            const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+            const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999).getTime();
+
+            const todaysLogs = clockLog.filter(log => log.timestamp >= startOfToday && log.timestamp <= endOfToday);
+
+            const dailyReport = {};
+            employees.forEach(employee => {
+                const empLogs = todaysLogs.filter(log => String(log.employeeId) === employee.id).sort((a,b) => a.timestamp - b.timestamp);
+                if (empLogs.length > 0) {
+                     dailyReport[employee.id] = { logs: empLogs };
+                }
+            });
+
+            // Process logs for each employee for today
+            Object.keys(dailyReport).forEach(empId => {
+                const dayLogs = dailyReport[empId].logs;
+                const { workingTime, lunchTime } = calculateTimes(dayLogs);
+                dailyReport[empId].workingTime = workingTime;
+                dailyReport[empId].lunchBreak = lunchTime;
+                const firstLog = dayLogs[0] ? dayLogs[0].timestamp : null;
+                const lastLog = dayLogs[dayLogs.length - 1] ? dayLogs[dayLogs.length - 1].timestamp : new Date().getTime();
+                if (firstLog && lastLog) {
+                    dailyReport[empId].totalShift = lastLog - firstLog;
+                }
+            });
+
+            let summaryHtml = `
+                <h3 class="text-xl font-bold mb-4 text-center text-gray-800">Daily Hours Summary for ${todayKey}</h3>
+                <table class="min-w-full bg-white rounded-lg shadow-sm">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Total Hours</th>
+                            <th>Lunch Break</th>
+                            <th>Total Shift</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            let totalCompanyHours = 0;
+            employees.forEach(employee => {
+                const empData = dailyReport[employee.id];
+                const workingTime = empData ? empData.workingTime : 0;
+                const totalShift = empData ? empData.totalShift : 0;
+                const lunchBreak = empData ? empData.lunchBreak : 0;
+                totalCompanyHours += workingTime;
+                const status = employee.status.charAt(0).toUpperCase() + employee.status.slice(1).replace('-', ' ');
+
+                summaryHtml += `
+                    <tr>
+                        <td>${employee.name}</td>
+                        <td>${formatDuration(workingTime)}</td>
+                        <td>${formatDuration(lunchBreak)}</td>
+                        <td>${formatDuration(totalShift)}</td>
+                        <td>${status}</td>
+                    </tr>
+                `;
+            });
+
+            summaryHtml += `
+                    </tbody>
+                </table>
+                <div class="mt-6 p-4 bg-gray-100 rounded-lg text-center">
+                    <h3 class="text-xl font-bold text-gray-900">Total Company Hours Today: <span class="text-blue-700">${formatDuration(totalCompanyHours)}</span></h3>
+                </div>
+            `;
+            dailyHoursSummaryDiv.innerHTML = summaryHtml;
+
+            const printContent = dailyHoursSummaryDiv.innerHTML;
+            const originalContents = document.body.innerHTML;
+            document.body.innerHTML = `
+                <div style="font-family: 'Inter', sans-serif; padding: 20px;">
+                    ${printContent}
+                </div>
+            `;
+            window.print();
+            document.body.innerHTML = originalContents;
+            location.reload();
+        }
+        
+        /**
+         * Exports a single CSV file with detailed hours and pay for all employees.
+         */
+        function exportAllHoursAndPayToCsv() {
+            const startDateStr = exportStartDateInput.value;
+            const endDateStr = exportEndDateInput.value;
+
+            if (!startDateStr || !endDateStr) {
+                showMessageModal("Input Error", "Please provide a Start Date and End Date for the export.");
+                return;
+            }
+
+            const startDate = new Date(startDateStr);
+            const endDate = new Date(endDateStr);
+            endDate.setHours(23, 59, 59, 999);
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += `Report Generated,${new Date().toLocaleString()}\n`;
+            csvContent += `Time Period,${startDateStr} to ${endDateStr}\n\n`;
+
+            employees.forEach(employee => {
+                const employeeLogs = clockLog.filter(log =>
+                    String(log.employeeId) === employee.id &&
+                    log.timestamp >= startDate.getTime() &&
+                    log.timestamp <= endDate.getTime()
+                ).sort((a, b) => a.timestamp - b.timestamp);
+
+                const dailyReport = {};
+                employeeLogs.forEach(log => {
+                    const dateKey = formatDateToYYYYMMDD(new Date(log.timestamp));
+                    if (!dailyReport[dateKey]) {
+                        dailyReport[dateKey] = { logs: [] };
+                    }
+                    dailyReport[dateKey].logs.push(log);
+                });
+
+                let totalWorkingTimePeriod = 0;
+                Object.keys(dailyReport).forEach(date => {
+                    const dayLogs = dailyReport[date].logs;
+                    const { workingTime } = calculateTimes(dayLogs);
+                    totalWorkingTimePeriod += workingTime;
+                });
+
+                const totalWorkingHours = totalWorkingTimePeriod / (1000 * 60 * 60);
+                const totalPay = totalWorkingHours * employee.payRate;
+
+                csvContent += `Employee ID:,${employee.id}\n`;
+                csvContent += `Employee Name:,${employee.name}\n`;
+                csvContent += `Pay Rate:,${employee.payRate.toFixed(2)}\n`;
+                csvContent += `Total Working Hours for Period:,${totalWorkingHours.toFixed(2)}\n`;
+                csvContent += `Total Pay for Period:,${totalPay.toFixed(2)}\n`;
+                csvContent += `\n`; // Add a blank line for separation
+
+                // Add detailed logs for each day
+                csvContent += `Date,Log Type,Log Timestamp\n`;
+                Object.keys(dailyReport).forEach(date => {
+                    dailyReport[date].logs.forEach(log => {
+                        csvContent += `"${date}","${log.type.replace('-', ' ')}","${formatTimestamp(log.timestamp)}"\n`;
+                    });
+                });
+                csvContent += `\n`; // Blank line after each employee's details
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `all_employee_hours_${startDateStr}_to_${endDateStr}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeApp();
+        });
+
+        hiddenClockInput.addEventListener('input', () => {
+            clearTimeout(hiddenInputTimer);
+            hiddenInputTimer = setTimeout(() => {
+                handleClockInOut();
+            }, DEBOUNCE_DELAY_MS);
+        });
+
+        document.addEventListener('click', () => { focusHiddenInput(); });
+        document.addEventListener('touchstart', () => { focusHiddenInput(); });
+        document.addEventListener('keydown', () => { focusHiddenInput(); });
+        
+        // Admin Panel Button Event Listeners
+        addEmployeeBtn.addEventListener('click', addOrUpdateEmployee);
+        exitAdminPanelBtn.addEventListener('click', returnToEmployeeView);
+        loadTimeCardBtn.addEventListener('click', loadTimeCard);
+        printTimeCardBtn.addEventListener('click', printTimeCard);
+        printDailyHoursSummaryBtn.addEventListener('click', printDailyHoursSummary);
+        exportAllHoursBtn.addEventListener('click', exportAllHoursAndPayToCsv);
+        saveEditBtn.addEventListener('click', saveEditedLogEntry);
+
+    </script>
+</body>
+</html>

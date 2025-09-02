@@ -1,0 +1,105 @@
+I can help you with this! I will create a list of the items you provided, formatted with the part number, description, and a text representation of a barcode.
+Please be aware that I cannot generate actual scannable barcode images. Barcodes require specific software and fonts to be created and displayed correctly. The text below is a representation of the data that would be encoded in the barcode. If you need scannable barcodes, you would need to use a dedicated barcode generator.
+Here are the items with their corresponding part numbers and a text representation of a barcode (using Code 39 format, which is common for this type of data):
+________________________________________
+Barcodes and SKUs
+80R-900-103A
+•	Description: 3 Part Perimeter Arm (20’) Incl Couplers, Hitch Pins Eyebolt
+•	Barcode (Code 39): *80R-900-103A*
+80R-900-010
+•	Description: 10’ Arm Section
+•	Barcode (Code 39): *80R-900-010*
+80R-900-0510
+•	Description: 5’ Arm Section
+•	Barcode (Code 39): *80R-900-0510*
+80R-900-104
+•	Description: 2’ Coupler
+•	Barcode (Code 39): *80R-900-104*
+80R-900-HPSP
+•	Description: Hitch Pin w/ spring clip
+•	Barcode (Code 39): *80R-900-HPSP*
+80R-900-HSWL
+•	Description: Hitch Pin w/ lanyard & hairpin
+•	Barcode (Code 39): *80R-900-HSWL*
+80R-100-58EB
+•	Description: 5/8’’x6’’ eyebolt
+•	Barcode (Code 39): *80R-100-58EB*
+80R-900-1001A
+•	Description: Standard Floor Mounting Bracket
+•	Barcode (Code 39): *80R-900-1001A*
+80R-900-006
+•	Description: Standard Column Mounting Bracket with Angles
+•	Barcode (Code 39): *80R-900-006*
+80R-900-006A
+•	Description: Corner Column Mounting Bracket with Angles
+•	Barcode (Code 39): *80R-900-006A*
+80R-900-007A
+•	Description: Web Rachet and Strap Assembly
+•	Barcode (Code 39): *80R-900-007A*
+80R-900-003
+•	Description: Backing Plate and Threaded Rod
+•	Barcode (Code 39): *80R-900-003*
+80R-900-08A
+•	Description: Slab Grabber Mounting Plate Assembly (top & bottom)
+•	Barcode (Code 39): *80R-900-08A*
+80R-900-10225
+•	Description: Spreader Bar - 10’
+•	Barcode (Code 39): *80R-900-10225*
+80R-900-005
+•	Description: Arm Retention/Retrieval Rope
+•	Barcode (Code 39): *80R-900-005*
+80R-900-38WT
+•	Description: 10’ Cable Assembly (White End)
+•	Barcode (Code 39): *80R-900-38WT*
+80R-900-38SO
+•	Description: 13’ Cable Assembly (Safety Orange End)
+•	Barcode (Code 39): *80R-900-38SO*
+80R-900-38PL
+•	Description: 15’ Cable Assembly (Purple End)
+•	Barcode (Code 39): *80R-900-38PL*
+80R-900-38YL
+•	Description: 20’ Cable Assembly (Yellow End)
+•	Barcode (Code 39): *80R-900-38YL*
+80R-900-38BR
+•	Description: 25’ Cable Assembly (Brown End)
+•	Barcode (Code 39): *80R-900-38BR*
+80R-900-38BL
+•	Description: 30’ Cable Assembly (Blue End)
+•	Barcode (Code 39): *80R-900-38BL*
+80R-900-38GR
+•	Description: 40’ Cable Assembly (Green End)
+•	Barcode (Code 39): *80R-900-38GR*
+80R-900-38BK
+•	Description: 50’ Cable Assembly (Black End)
+•	Barcode (Code 39): *80R-900-38BK*
+80R-900-38RD
+•	Description: 100’ Cable Assembly (Red End)
+•	Barcode (Code 39): *80R-900-38RD*
+80R-230-38
+•	Description: 3/8’’ Cable Clamp
+•	Barcode (Code 39): *80R-230-38*
+80R-300-0001
+•	Description: Rated Snap Hook
+•	Barcode (Code 39): *80R-300-0001*
+20R-300-1017
+•	Description: 10’ x 17’ #300 Series Combo Net
+•	Barcode (Code 39): *20R-300-1017*
+20R-300-1720
+•	Description: 17’ x 20’ #300 Series Combo Net
+•	Barcode (Code 39): *20R-300-1720*
+20R-300-1725
+•	Description: 17’ x 25’ #300 Series Combo Net
+•	Barcode (Code 39): *20R-300-1725*
+20R-300-1730
+•	Description: 17’ x 30’ #300 Series Combo Net
+•	Barcode (Code 39): *20R-300-1730*
+20R-300-2025
+•	Description: 20’ x 25’ #300 Series Combo Net
+•	Barcode (Code 39): *20R-300-2025*
+20R-300-2030
+•	Description: 20’ x 30’ #300 Series Combo Net
+•	Barcode (Code 39): *20R-300-2030*
+20R-300-171724
+•	Description: 17’ x 17’ x 24’ #300 Series Corner Guard Combo Net
+•	Barcode (Code 39): *20R-300-171724*
+
